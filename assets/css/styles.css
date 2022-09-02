@@ -1,0 +1,8 @@
+@import "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css";
+
+ol {
+    display: block;
+    list-style-type: decimal;
+    margin: 1em;
+    padding-left: 20px;
+}

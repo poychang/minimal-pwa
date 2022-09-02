@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+        <title>Minimal PWA</title>
+
+        <link rel="stylesheet" href="assets/css/styles.css" />
+        <link rel="manifest" href="manifest.json" />
+    </head>
+    <body>
+        <section class="section">
+            <h1 class="title">Hello PWA</h1>
+            <h2 class="subtitle">Build Minimal PWA</h2>
+            <ol>
+                <li>Create index.html</li>
+                <li>
+                    Add manifest.json<br />
+                    <pre>
+{
+    "name": "Minimal PWA",
+    "short_name": "Minimal PWA",
+    "description": "Minimal PWA",
+    "icons": [
+        {
+            "src": "./assets/images/192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "./index.html",
+    "background_color": "#000",
+    "theme_color": "#536878",
+    "display": "standalone"
+}
+                    </pre>
+                </li>
+                <li>
+                    Add service-worker.js<br />
+                    <pre>
+self.addEventListener('install', function (event) {
+    self.skipWaiting();
+
+    var offlinePage = new Request('offline.html');
+    event.waitUntil(
+        fetch(offlinePage).then(function (response) {
+            return caches.open('offline2').then(function (cache) {
+                return cache.put(offlinePage, response);
+            });
+        })
+    );
+});
+self.addEventListener('fetch', function (event) {
+    event.respondWith(
+        fetch(event.request).catch(function (error) {
+            return caches.open('offline2').then(function (cache) {
+                return cache.match('offline.html');
+            });
+        })
+    );
+});
+self.addEventListener('refreshOffline', function (response) {
+    return caches.open('offline2').then(function (cache) {
+        return cache.put(offlinePage, response);
+    });
+});
+self.addEventListener('push', function (event) {
+    var data = event.data.json();
+    var opts = {
+        body: data.body,
+        icon: data.icon,
+        data: {
+            url: data.url,
+        },
+    };
+    event.waitUntil(self.registration.showNotification(data.title, opts));
+});
+self.addEventListener('notificationclick', function (event) {
+    var data = event.notification.data;
+    event.notification.close();
+    event.waitUntil(clients.openWindow(data.url));
+});
+                    </pre>
+                </li>
+                <li>
+                    Register Service Worker in javaScript<br />
+                    <pre>
+/*===== Service Worker =====*/
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+        .register('service-worker.js')
+        .then((reg) => console.log('Service worker registered'))
+        .catch((err) => console.log('Service worker not registered. This happened: ', err));
+}
+                    </pre>
+                </li>
+            </ol>
+        </section>
+
+        <script type="text/javascript" src="assets/js/app.js"></script>
+    </body>
+</html>
